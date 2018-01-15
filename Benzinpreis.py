@@ -15,6 +15,7 @@
 import requests
 import time
 import csv
+import matplotlib as plt
 from time import strftime, localtime
 from bs4 import BeautifulSoup
 
@@ -96,7 +97,7 @@ output = open(path+filename, 'w', newline = '')
 #write data into output
 with output:
     a, b, c, d = get_data(load_page(source))
-    p, ad = stripped(a, b, c, d)
+    p, ad = stripped(a, b, c, d) #get price and address
     header = ['Datum u. Zeit', ad[0], ad[1], ad[2], ad[3]]
     print(header)
     result = csv.writer(output)
@@ -107,7 +108,7 @@ with output:
     while x < (24*span):
         clock = strftime('%x - %H:%M', localtime()) 
         a, b, c, d = get_data(load_page(source))
-        p, ad = stripped(a, b, c, d)
+        p, ad = stripped(a, b, c, d) #get price and address
         entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',','), p[3].replace('.',',')]
         print(entry)
         # output = open('benzinpreise.csv', 'w', newline = '') - need to check if that is necessary
