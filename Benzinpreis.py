@@ -15,20 +15,20 @@
 import requests
 import time
 import csv
-import matplotlib as plt
+import matplotlib.pyplot as plt
 from time import strftime, localtime
 from bs4 import BeautifulSoup
 
 #Set parameters and get fuel-prices from http://clever-tanken.de
-path = ''        # path where the save-file is created
-filename = ''   # name of the save-file
-day = ''         # Weekday to start the scan (Use int. abbreviations: Sun, Mon, Tue, ...)
+path = 'e:\\'        # path where the save-file is created
+filename = 'test.csv'   # name of the save-file
+day = 'Sun'         # Weekday to start the scan (Use int. abbreviations: Sun, Mon, Tue, ...)
 span = 7            # for how many days should the prices be checked
 period = 3600       # how often do you want to check the price in seconds (3600 = 1hr)
 
 #parameters for the web-request
-PLZ = ''       # the ZIP-Code of the town
-town = ''  # the actual name of the town
+PLZ = '91586'       # the ZIP-Code of the town
+town = 'Lichtenau'  # the actual name of the town
 radius = '5.0'      # the radius in which to check prices here 5km
 fueltype = '5'      # the fuel-type you are looking for 1=Autogas (LPG)
                     #                                   2=LKW-Diesel
@@ -42,7 +42,26 @@ fueltype = '5'      # the fuel-type you are looking for 1=Autogas (LPG)
                     #                                   13=AdBlue
 
 #adding the parameters to search the database of clever-tanken.de
-source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+fueltype+'&ort='PLZ+'+'town'&r='+radius'&sort=km'
+source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+fueltype+'&ort='+PLZ+'+'+town+'&r='+radius+'&sort=km'
+
+# start matplotlib with 4 subplots
+fig = plt.figure()
+
+station_1 = fig.add_subplot(2,2,1)
+station_1.set_xlabel('Datum')
+station_1.set_ylabel('Preis')
+
+station_2 = fig.add_subplot(2,2,2)
+station_2.set_xlabel('Datum')
+station_2.set_ylabel('Preis')
+
+station_3 = fig.add_subplot(2,2,3)
+station_3.set_xlabel('Datum')
+station_3.set_ylabel('Preis')
+
+#station_4 = fig.add_subplot(2,2,4)
+#station_4.set_xlabel('Datum')
+#station_4.set_ylabel('Preis')
 
 #loads the url into the parser
 def load_page(url):
@@ -88,17 +107,42 @@ def stripped (p_tag, sta_tag, str_tag, loc_tag):
     return price, address
 
 #wait until the weekday arrives when you want to start the scan
-while strftime('%a') != day:
-    time.sleep(period)
+#while strftime('%a') != day:
+#    time.sleep(period)
 
 #create a csv-file
-output = open(path+filename, 'w', newline = '')    
+output = open(path+filename, 'w', newline = '')
+dates = []
+price_s1 = []
+price_s2 = []
+price_s3 = []
+price_s4 = []
 
 #write data into output
 with output:
     a, b, c, d = get_data(load_page(source))
     p, ad = stripped(a, b, c, d) #get price and address
-    header = ['Datum u. Zeit', ad[0], ad[1], ad[2], ad[3]]
+    header = ['Datum u. Zeit', ad[0], ad[1], ad[2]]
+    
+    station_1.set_title(ad[0])
+    station_2.set_title(ad[1])
+    station_3.set_title(ad[2])
+    #station_4.title(ad[3])
+    
+    price_s1.append(p[0])
+    price_s2.append(p[1])
+    price_s3.append(p[2])
+    #price_s4.append(p[3])
+    
+    dates.append(strftime('%x - %H:%M', localtime()))
+    
+    station_1.plot(dates, price_s1)
+    station_2.plot(dates, price_s2)
+    station_3.plot(dates, price_s3)
+    #station_4.plot(dates, price_s4)
+    # fig.plot()
+    fig.show()
+    
     print(header)
     result = csv.writer(output)
     result.writerow(header)
@@ -109,12 +153,13 @@ with output:
         clock = strftime('%x - %H:%M', localtime()) 
         a, b, c, d = get_data(load_page(source))
         p, ad = stripped(a, b, c, d) #get price and address
-        entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',','), p[3].replace('.',',')]
+        entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',',')] #, p[3].replace('.',',')]
         print(entry)
         # output = open('benzinpreise.csv', 'w', newline = '') - need to check if that is necessary
         result.writerow(entry)
         x += 1
         time.sleep(period)
+        fig.update()
     
     output.close()
     
