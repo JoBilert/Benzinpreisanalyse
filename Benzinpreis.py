@@ -52,15 +52,15 @@ style.use('fivethirtyeight')
 fig = plt.figure()
 
 
-station_1 = fig.add_subplot(2,2,1)
+station_1 = fig.add_subplot(3,1,1)
 station_1.set_xlabel('Datum')
 station_1.set_ylabel('Preis')
 
-station_2 = fig.add_subplot(2,2,2)
+station_2 = fig.add_subplot(3,1,2)
 station_2.set_xlabel('Datum')
 station_2.set_ylabel('Preis')
 
-station_3 = fig.add_subplot(2,2,3)
+station_3 = fig.add_subplot(3,1,3)
 station_3.set_xlabel('Datum')
 station_3.set_ylabel('Preis')
 
@@ -145,9 +145,9 @@ with output:
     station_1.set_title(ad[0])
     station_2.set_title(ad[1])
     station_3.set_title(ad[2])
-    ani = animation.FuncAnimation(fig, animate, 60100)
+    ani = animation.FuncAnimation(fig, animate, 3600100)
     plt.show()
-    print(header)
+    #print(header)
     result = csv.writer(output)
     result.writerow(header)
 
@@ -163,7 +163,7 @@ with output:
         price_s3.append(p[2])
         
         entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',',')] #, p[3].replace('.',',')]
-        print(entry)
+        #print(entry)
         # output = open('benzinpreise.csv', 'w', newline = '') - need to check if that is necessary
         result.writerow(entry)
         x += 1
