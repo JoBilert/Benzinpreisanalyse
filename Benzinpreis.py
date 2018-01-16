@@ -15,7 +15,7 @@
 import requests
 import time
 import csv
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt, mpld3
 import matplotlib.animation as animation
 from matplotlib import style
 from time import strftime, localtime
@@ -146,7 +146,8 @@ with output:
     station_2.set_title(ad[1])
     station_3.set_title(ad[2])
     ani = animation.FuncAnimation(fig, animate, 3600100)
-    plt.show()
+    #plt.show()
+    mpld3.show()
     #print(header)
     result = csv.writer(output)
     result.writerow(header)
