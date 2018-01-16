@@ -16,6 +16,8 @@ import requests
 import time
 import csv
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import style
 from time import strftime, localtime
 from bs4 import BeautifulSoup
 
@@ -24,7 +26,7 @@ path = 'e:\\'        # path where the save-file is created
 filename = 'test.csv'   # name of the save-file
 day = 'Sun'         # Weekday to start the scan (Use int. abbreviations: Sun, Mon, Tue, ...)
 span = 7            # for how many days should the prices be checked
-period = 3600       # how often do you want to check the price in seconds (3600 = 1hr)
+period = 60       # how often do you want to check the price in seconds (3600 = 1hr)
 
 #parameters for the web-request
 PLZ = '91586'       # the ZIP-Code of the town
@@ -45,7 +47,10 @@ fueltype = '5'      # the fuel-type you are looking for 1=Autogas (LPG)
 source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+fueltype+'&ort='+PLZ+'+'+town+'&r='+radius+'&sort=km'
 
 # start matplotlib with 4 subplots
+style.use('fivethirtyeight')
+
 fig = plt.figure()
+
 
 station_1 = fig.add_subplot(2,2,1)
 station_1.set_xlabel('Datum')
@@ -106,6 +111,19 @@ def stripped (p_tag, sta_tag, str_tag, loc_tag):
     
     return price, address
 
+def animate(i):
+    price_s1.append(p[0])
+    price_s2.append(p[1])
+    price_s3.append(p[2])
+    #price_s4.append(p[3])
+    
+    dates.append(strftime('%x - %H:%M', localtime()))
+    station_1.clear()
+    station_1.plot(dates, price_s1)
+    station_2.clear()
+    station_2.plot(dates, price_s2)
+    station_3.clear()
+    station_3.plot(dates, price_s3)
 #wait until the weekday arrives when you want to start the scan
 #while strftime('%a') != day:
 #    time.sleep(period)
@@ -127,22 +145,8 @@ with output:
     station_1.set_title(ad[0])
     station_2.set_title(ad[1])
     station_3.set_title(ad[2])
-    #station_4.title(ad[3])
-    
-    price_s1.append(p[0])
-    price_s2.append(p[1])
-    price_s3.append(p[2])
-    #price_s4.append(p[3])
-    
-    dates.append(strftime('%x - %H:%M', localtime()))
-    
-    station_1.plot(dates, price_s1)
-    station_2.plot(dates, price_s2)
-    station_3.plot(dates, price_s3)
-    #station_4.plot(dates, price_s4)
-    # fig.plot()
-    fig.show()
-    
+    ani = animation.FuncAnimation(fig, animate, 60100)
+    plt.show()
     print(header)
     result = csv.writer(output)
     result.writerow(header)
@@ -153,13 +157,17 @@ with output:
         clock = strftime('%x - %H:%M', localtime()) 
         a, b, c, d = get_data(load_page(source))
         p, ad = stripped(a, b, c, d) #get price and address
+        
+        price_s1.append(p[0])
+        price_s2.append(p[1])
+        price_s3.append(p[2])
+        
         entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',',')] #, p[3].replace('.',',')]
         print(entry)
         # output = open('benzinpreise.csv', 'w', newline = '') - need to check if that is necessary
         result.writerow(entry)
         x += 1
         time.sleep(period)
-        fig.update()
     
     output.close()
     
