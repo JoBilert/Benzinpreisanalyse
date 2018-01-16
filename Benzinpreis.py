@@ -15,9 +15,9 @@
 import requests
 import time
 import csv
-import matplotlib.pyplot as plt, mpld3
-import matplotlib.animation as animation
-from matplotlib import style
+from plotly import tools
+import plotly.plotly as py
+import plotly.graph_objs as go
 from time import strftime, localtime
 from bs4 import BeautifulSoup
 
@@ -45,28 +45,6 @@ fueltype = '5'      # the fuel-type you are looking for 1=Autogas (LPG)
 
 #adding the parameters to search the database of clever-tanken.de
 source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+fueltype+'&ort='+PLZ+'+'+town+'&r='+radius+'&sort=km'
-
-# start matplotlib with 4 subplots
-style.use('fivethirtyeight')
-
-fig = plt.figure()
-
-
-station_1 = fig.add_subplot(3,1,1)
-station_1.set_xlabel('Datum')
-station_1.set_ylabel('Preis')
-
-station_2 = fig.add_subplot(3,1,2)
-station_2.set_xlabel('Datum')
-station_2.set_ylabel('Preis')
-
-station_3 = fig.add_subplot(3,1,3)
-station_3.set_xlabel('Datum')
-station_3.set_ylabel('Preis')
-
-#station_4 = fig.add_subplot(2,2,4)
-#station_4.set_xlabel('Datum')
-#station_4.set_ylabel('Preis')
 
 #loads the url into the parser
 def load_page(url):
@@ -111,22 +89,22 @@ def stripped (p_tag, sta_tag, str_tag, loc_tag):
     
     return price, address
 
-def animate(i):
-    price_s1.append(p[0])
-    price_s2.append(p[1])
-    price_s3.append(p[2])
-    #price_s4.append(p[3])
+#plot with plotly
+def plotter(p1, p2, p3, c):
+    plot1 = go.Scatter(c,p1)
+    plot2 = go.Scatter(c,p2)
+    plot3 = go.Scatter(c,p3)
     
-    dates.append(strftime('%x - %H:%M', localtime()))
-    station_1.clear()
-    station_1.plot(dates, price_s1)
-    station_2.clear()
-    station_2.plot(dates, price_s2)
-    station_3.clear()
-    station_3.plot(dates, price_s3)
+    fig = tools.make_subplots(rows=3,cols=1)
+    fig.append_trace(plot1, 1, 1)
+    fig.append_trace(plot2, 2, 1)
+    fig.append_trace(plot3, 3, 1)
+    plot_url = py.plot(fig, filename='price-plot', fileopt='extend')
+   
+
 #wait until the weekday arrives when you want to start the scan
 #while strftime('%a') != day:
-#    time.sleep(period)
+#    time.sleep(period)'''
 
 #create a csv-file
 output = open(path+filename, 'w', newline = '')
@@ -141,14 +119,6 @@ with output:
     a, b, c, d = get_data(load_page(source))
     p, ad = stripped(a, b, c, d) #get price and address
     header = ['Datum u. Zeit', ad[0], ad[1], ad[2]]
-    
-    station_1.set_title(ad[0])
-    station_2.set_title(ad[1])
-    station_3.set_title(ad[2])
-    ani = animation.FuncAnimation(fig, animate, 3600100)
-    #plt.show()
-    mpld3.show()
-    #print(header)
     result = csv.writer(output)
     result.writerow(header)
 
@@ -159,15 +129,18 @@ with output:
         a, b, c, d = get_data(load_page(source))
         p, ad = stripped(a, b, c, d) #get price and address
         
+        dates.append(clock)
         price_s1.append(p[0])
         price_s2.append(p[1])
         price_s3.append(p[2])
         
+        plotter(price_s1, price_s2, price_s3, clock)
         entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',',')] #, p[3].replace('.',',')]
         #print(entry)
         # output = open('benzinpreise.csv', 'w', newline = '') - need to check if that is necessary
         result.writerow(entry)
         x += 1
+        #mpld3.show()
         time.sleep(period)
     
     output.close()
