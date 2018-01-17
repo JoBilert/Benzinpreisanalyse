@@ -1,9 +1,9 @@
-# title# Benzinpreisanalyse
+# Benzinpreisanalyse
 Get fuel-prices from http://clever-tanken.de and save them for price-development analysis
 
 *written in Python 3*
 
-This Python script uses the website http://clever-tanken.de to get the fuel-price of the stations in your area of choice.
+This Python script uses the website http://clever-tanken.de to get the fuel-price of the **three closest stations** in your area of choice.
 The data is saved into a csv-File for later analysis in an application of your liking.
 
 ## Usage
@@ -28,5 +28,6 @@ The data is output as graph in the file `index.html` in `path`. The file gets up
 
 ## ToDo
 + adding a GUI
-+ adding matplotlib to generate graphs from the gathered data/csv-file
++ get the number of stations in your area and print each of them
+
 
