@@ -92,13 +92,18 @@ def stripped (p_tag, sta_tag, str_tag, loc_tag):
 
 #plot with plotly
 def plotter(p1, p2, p3, c, ad):
-    plot1 = go.Scatter(x=c, y=p1)
-    #plot1['layout'].update(title = ad[0])
-    plot2 = go.Scatter(x=c, y=p2)
-    plot3 = go.Scatter(x=c, y=p3)
+    style = go.Layout(showlegend = False)
+    plot1 = go.Scatter(name=ad[0],x=c, y=p1)
+    dplot1 = [plot1]
+    pplot1 = go.Figure(data=dplot1, layout=style)
+    
+    plot2 = go.Scatter(name=ad[1],x=c, y=p2)
+    plot3 = go.Scatter(name=ad[2],x=c, y=p3)
+    
+    
     
     fig = tools.make_subplots(rows=3,cols=1,subplot_titles=(ad))
-    fig.append_trace(plot1, 1, 1)
+    fig.append_trace(pplot1, 1, 1)
     fig.append_trace(plot2, 2, 1)
     fig.append_trace(plot3, 3, 1)
     plotly.offline.plot(fig, filename='test.html')
