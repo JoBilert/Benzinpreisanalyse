@@ -23,7 +23,7 @@ from time import strftime, localtime
 from bs4 import BeautifulSoup
 
 #Set parameters and get fuel-prices from http://clever-tanken.de
-path = 'e:\\'        # path where the save-file is created
+path = '/var/www/html/' # path where the save-file is created
 filename = 'test.csv'   # name of the save-file
 day = 'Sun'         # Weekday to start the scan (Use int. abbreviations: Sun, Mon, Tue, ...)
 span = 7            # for how many days should the prices be checked
@@ -103,7 +103,7 @@ def plotter(p1, p2, p3, c, ad):
     data = [plot1, plot2, plot3]
     
     fig = dict(data=data, layout=layout)
-    plotly.offline.plot(fig, filename='test.html', auto_open=False)
+    plotly.offline.plot(fig, filename=path+'index.html', auto_open=False)
    
 
 #wait until the weekday arrives when you want to start the scan

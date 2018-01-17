@@ -1,4 +1,4 @@
-# Benzinpreisanalyse
+# title# Benzinpreisanalyse
 Get fuel-prices from http://clever-tanken.de and save them for price-development analysis
 
 *written in Python 3*
@@ -15,7 +15,7 @@ Edit the script and set the Parameters:
 |filename |*the name of the csv-file*                    |
 |day      |*day when the scanning starts (default = Sun)*|
 |span     |*how many shall the program run (default = 7)*|
-|period   |*frequency of the scans (default = 3600 sec = 1hr)*|
+|period   |*frequency of the scans (default = 1800 sec = 30 min)*|
 |PLZ      |*enter your ZIP-Code*|
 |town     |*Enter the name of your town*|
 |radius   |*radius of the area scanned (default = 5.0km)*|
@@ -23,7 +23,10 @@ Edit the script and set the Parameters:
 
 Run the program on your server with `python3 Benzinpreis.py`. After the program finished running you can copy the csv file and open it in any application you think appropriate for analysis.
 
+The data is output as graph in the file `index.html` in `path`. The file gets updated with every iteration.
+
+
 ## ToDo
 + adding a GUI
 + adding matplotlib to generate graphs from the gathered data/csv-file
-+ adding the data/graphs to a website
+
