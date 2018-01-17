@@ -18,6 +18,7 @@ import csv
 from plotly import tools
 import plotly.plotly as py
 import plotly.graph_objs as go
+import plotly
 from time import strftime, localtime
 from bs4 import BeautifulSoup
 
@@ -90,16 +91,17 @@ def stripped (p_tag, sta_tag, str_tag, loc_tag):
     return price, address
 
 #plot with plotly
-def plotter(p1, p2, p3, c):
-    plot1 = go.Scatter(c,p1)
-    plot2 = go.Scatter(c,p2)
-    plot3 = go.Scatter(c,p3)
+def plotter(p1, p2, p3, c, ad):
+    plot1 = go.Scatter(x=c, y=p1)
+    #plot1['layout'].update(title = ad[0])
+    plot2 = go.Scatter(x=c, y=p2)
+    plot3 = go.Scatter(x=c, y=p3)
     
-    fig = tools.make_subplots(rows=3,cols=1)
+    fig = tools.make_subplots(rows=3,cols=1,subplot_titles=(ad))
     fig.append_trace(plot1, 1, 1)
     fig.append_trace(plot2, 2, 1)
     fig.append_trace(plot3, 3, 1)
-    plot_url = py.plot(fig, filename='price-plot', fileopt='extend')
+    plotly.offline.plot(fig, filename='test.html')
    
 
 #wait until the weekday arrives when you want to start the scan
@@ -134,7 +136,7 @@ with output:
         price_s2.append(p[1])
         price_s3.append(p[2])
         
-        plotter(price_s1, price_s2, price_s3, clock)
+        plotter(price_s1, price_s2, price_s3, clock, ad)
         entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',',')] #, p[3].replace('.',',')]
         #print(entry)
         # output = open('benzinpreise.csv', 'w', newline = '') - need to check if that is necessary
