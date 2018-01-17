@@ -6,6 +6,10 @@ Get fuel-prices from http://clever-tanken.de and save them for price-development
 This Python script uses the website http://clever-tanken.de to get the fuel-price of the **three closest stations** in your area of choice.
 The data is saved into a csv-File for later analysis in an application of your liking.
 
+## Requirements
+Check, whether you have all the necessary python-modules installed: BeautifulSoup, Plotly, Requests or install them with
+`pip3 install bs4 plotly requests`
+
 ## Usage
 Edit the script and set the Parameters:  
 
@@ -27,7 +31,8 @@ The data is output as graph in the file `index.html` in `path`. The file gets up
 
 
 ## ToDo
-+ adding a GUI
++ adding a (Web-)GUI
 + get the number of stations in your area and print each of them
++ error-handling 
 
 
