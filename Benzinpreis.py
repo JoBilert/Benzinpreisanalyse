@@ -27,7 +27,7 @@ path = 'e:\\'        # path where the save-file is created
 filename = 'test.csv'   # name of the save-file
 day = 'Sun'         # Weekday to start the scan (Use int. abbreviations: Sun, Mon, Tue, ...)
 span = 7            # for how many days should the prices be checked
-period = 60       # how often do you want to check the price in seconds (3600 = 1hr)
+period = 1800       # how often do you want to check the price in seconds (3600 = 1hr)
 
 #parameters for the web-request
 PLZ = '91586'       # the ZIP-Code of the town
@@ -92,21 +92,18 @@ def stripped (p_tag, sta_tag, str_tag, loc_tag):
 
 #plot with plotly
 def plotter(p1, p2, p3, c, ad):
-    style = go.Layout(showlegend = False)
+    layout = dict(xaxis = dict(title = 'Zeitpunkt'),
+                  yaxis = dict(title = 'Preis'),
+                  )
+   
     plot1 = go.Scatter(name=ad[0],x=c, y=p1)
-    dplot1 = [plot1]
-    pplot1 = go.Figure(data=dplot1, layout=style)
-    
     plot2 = go.Scatter(name=ad[1],x=c, y=p2)
     plot3 = go.Scatter(name=ad[2],x=c, y=p3)
     
+    data = [plot1, plot2, plot3]
     
-    
-    fig = tools.make_subplots(rows=3,cols=1,subplot_titles=(ad))
-    fig.append_trace(pplot1, 1, 1)
-    fig.append_trace(plot2, 2, 1)
-    fig.append_trace(plot3, 3, 1)
-    plotly.offline.plot(fig, filename='test.html')
+    fig = dict(data=data, layout=layout)
+    plotly.offline.plot(fig, filename='test.html', auto_open=False)
    
 
 #wait until the weekday arrives when you want to start the scan
@@ -131,7 +128,7 @@ with output:
 
     x = 0
     
-    while x < (24*span):
+    while x < (48*span):
         clock = strftime('%x - %H:%M', localtime()) 
         a, b, c, d = get_data(load_page(source))
         p, ad = stripped(a, b, c, d) #get price and address
@@ -141,7 +138,7 @@ with output:
         price_s2.append(p[1])
         price_s3.append(p[2])
         
-        plotter(price_s1, price_s2, price_s3, clock, ad)
+        plotter(price_s1, price_s2, price_s3, dates, ad)
         entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',',')] #, p[3].replace('.',',')]
         #print(entry)
         # output = open('benzinpreise.csv', 'w', newline = '') - need to check if that is necessary
