@@ -104,7 +104,7 @@ def plotter(stations, times):
         data.append(plot)
     
     fig = dict(data=data, layout=layout)
-    plotly.offline.plot(fig, filename=html_file, auto_open=False)
+    plotly.offline.plot(fig, filename=path+html_file, auto_open=False)
     
 #run the mainloop
 counter = 0
