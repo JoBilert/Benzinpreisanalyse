@@ -22,9 +22,22 @@ import plotly
 from time import strftime, localtime
 from bs4 import BeautifulSoup
 
+#generates station-obj containing the add and the prices
+class Station:
+    def __init__(self, address):
+        self.address = address
+        self.prices = []
+    
+    
+        
+    def append(self, price):
+        self.prices.append(price)
+        return self.prices
+
+    
+    
 #Set parameters and get fuel-prices from http://clever-tanken.de
-path = '/var/www/html/' # path where the save-file is created
-filename = 'test.csv'   # name of the save-file
+path = '' # path where the save-file is created
 day = 'Sun'         # Weekday to start the scan (Use int. abbreviations: Sun, Mon, Tue, ...)
 span = 7            # for how many days should the prices be checked
 period = 1800       # how often do you want to check the price in seconds (3600 = 1hr)
@@ -69,6 +82,8 @@ def stripped (p_tag, sta_tag, str_tag, loc_tag):
     street = []
     loc = []
     address = []
+    
+    if len(p_tag) != sta_tag:
     
     #extract texts
     for p in p_tag:
@@ -118,35 +133,39 @@ price_s2 = []
 price_s3 = []
 price_s4 = []
 
-#write data into output
-with output:
-    a, b, c, d = get_data(load_page(source))
-    p, ad = stripped(a, b, c, d) #get price and address
-    header = ['Datum u. Zeit', ad[0], ad[1], ad[2]]
-    result = csv.writer(output)
-    result.writerow(header)
 
-    x = 0
-    
-    while x < (48*span):
-        clock = strftime('%x - %H:%M', localtime()) 
-        a, b, c, d = get_data(load_page(source))
-        p, ad = stripped(a, b, c, d) #get price and address
+a, b, c, d = get_data(load_page(source))
+prices, ad = stripped(a, b, c, d) #get price and address
+stations = []
+
+for i in len(prices):
+    station_temp = station(ad[i])
+
+stations.append(station_temp)
         
-        dates.append(clock)
-        price_s1.append(p[0])
-        price_s2.append(p[1])
-        price_s3.append(p[2])
+x = 0
+    
+while x < (48*span):
+    #get timestamp
+    clock = strftime('%x - %H:%M', localtime())
+    dates.append(clock)
+    
+    #get data
+    a, b, c, d = get_data(load_page(source))
+    prices, ad = stripped(a, b, c, d) #get price and address
+    
+    for p in range(len(ad)):
+        if 
+    
+        
+    price_s1.append(p[0])
+    price_s2.append(p[1])
+    price_s3.append(p[2])
         
         plotter(price_s1, price_s2, price_s3, dates, ad)
-        entry = [clock, p[0].replace('.',','), p[1].replace('.',','), p[2].replace('.',',')] #, p[3].replace('.',',')]
-        #print(entry)
-        # output = open('benzinpreise.csv', 'w', newline = '') - need to check if that is necessary
-        result.writerow(entry)
         x += 1
-        #mpld3.show()
         time.sleep(period)
     
-    output.close()
+
     
 
