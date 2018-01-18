@@ -110,7 +110,7 @@ def plotter(stations, times):
 counter = 0
 clock = [] #save the timestamp of each scan
 
-while counter < (48*int(span)):
+while counter < (((3600*24)/int(period))*int(span)):
     clock.append(strftime('%x - %H:%M', localtime()))
     website = load_page(source)
     fuelstations = get_stations(website)
