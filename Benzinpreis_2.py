@@ -2,7 +2,7 @@
 # Checking Fuel-Prices with clever-tanken.de
 # author: Joerg Bilert
 # Ver.: 0.5
-# Date: 01-12-2018
+# Date: 01-18-2018
 ##################################################################
 import requests
 from plotly import tools
@@ -101,7 +101,7 @@ def plotter(stations, times):
         data.append(plot)
     
     fig = dict(data=data, layout=layout)
-    plotly.offline.plot(fig, filename=html_file, auto_open=False)
+    plotly.offline.plot(fig, filename=path+html_file, auto_open=False)
     
 #run the mainloop
 counter = 0
