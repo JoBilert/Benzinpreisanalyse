@@ -83,12 +83,13 @@ def extract_price(raw):
     x = 0
     for station in raw:
         price_temp = station.find(class_="price")
-        if price_temp ==None:
+        
+        #check if the station offers a price for the selected fuel at the selected time
+        if price_temp == None:
             price = None
         else:
-            print (price_temp)
             price = float(price_temp.contents[0])
-        #print (price)
+       
         stations[x].append(price)
         x += 1
         
