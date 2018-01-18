@@ -28,4 +28,3 @@ RADIUS = 5.0
  #                                   12=Premium-Diesel
  #                                   13=AdBlue
 FUEL_TYPE = 5
->>>>>>> 261bf5beb380d542d67cc0965b4815a62c657e89
