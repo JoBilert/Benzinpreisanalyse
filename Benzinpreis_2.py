@@ -23,6 +23,11 @@ class Station:
     def append(self, price):
         self.prices.append(price)
         return self.prices
+    
+    def print(self):
+        print(self.address)
+        for price in self.prices:
+            print(price)
 
 #read config.ini from the program directory
 config = configparser.ConfigParser()
@@ -53,42 +58,62 @@ def load_page(url):
 #extract price-table from webpage
 def get_stations(content):
     sta = content.find_all(class_='price-entry')
-    for station in sta:
-        station_address = get_address(station)
-        stations.append(Station(station_address)) 
-
-#extrace address from price-table
+    return sta
+     
+#get address and creat station_obj for each station
 def get_address(raw):
-    #get address-info in html
-    ad1 = raw.find(class_='row fuel-station-location-name')
-    ad2 = raw.find(id = 'fuel-station-location-street')
-    ad3 = raw.find(id = 'fuel-station-location-city')
-    
-    #strip html-tags
-    ad1_str = ad1.contents[0]
-    ad2_str = ad2.contents[0]
-    ad3_str = ad3.contents[0]
-    #combine into address-string
-    address = ad1_str +'\n'+ ad2_str +'\n'+ ad3_str
-    return address
-
-#adds prices to the station_object
-def get_price(content):
-    sta = content.find_all(class_='price-entry')
-    for station in stations:
-        station.append(extract_price(sta))
+    for station in raw:
+        #get address-info in html
+        ad1 = station.find(class_='row fuel-station-location-name')
+        ad2 = station.find(id = 'fuel-station-location-street')
+        ad3 = station.find(id = 'fuel-station-location-city')
         
-#extract prices from html
-def extract_price(raw):
-    price_temp = raw.find(class_='price')
-    print (price_temp)
-    price = float(price_temp.contents[0])
-    #print (price)
-    return price
+        #strip html-tags
+        ad1_str = ad1.contents[0]
+        ad2_str = ad2.contents[0]
+        ad3_str = ad3.contents[0]
+        
+        #combine into address-string and create Station
+        address = ad1_str +'\n'+ ad2_str +'\n'+ ad3_str
+        stations.append(Station(address))
     
 
-test = load_page(source)
-test2= get_stations(test)
-get_price(test)
-print(stations[1].address)
-print(stations[1].prices)
+#extract prices from html and append do Station
+def extract_price(raw):
+    x = 0
+    for station in raw:
+        price_temp = station.find(class_="price")
+        print (price_temp)
+        price = float(price_temp.contents[0])
+        #print (price)
+        stations[x].append(price)
+        x += 1
+        
+#plot the data and publish it as html
+def plotter(stations, times):
+    layout = dict(xaxis = dict(title = 'Zeitpunkt'),
+                  yaxis = dict(title = 'Preis'),
+                  )
+    data = []
+    for station in stations:
+        #print(station.address)
+        plot = go.Scatter(name = station.address, x = times, y = station.prices)
+        data.append(plot)
+    
+    fig = dict(data=data, layout=layout)
+    plotly.offline.plot(fig, filename=html_file, auto_open=False)
+    
+#run the mainloop
+counter = 0
+clock = [] #save the timestamp of each scan
+
+while counter < (48*int(span)):
+    clock.append(strftime('%x - %H:%M', localtime()))
+    website = load_page(source)
+    fuelstations = get_stations(website)
+    get_address(fuelstations)
+    extract_price(fuelstations)
+    plotter(stations, clock)
+    counter +=1
+    time.sleep(int(period))
+    
