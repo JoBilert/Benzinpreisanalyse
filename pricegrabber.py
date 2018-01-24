@@ -1,18 +1,16 @@
-##################################################################
-# Checking Fuel-Prices with clever-tanken.de
-# author: Joerg Bilert
-# Ver.: 0.5
-# Date: 01-12-2018
-##################################################################
+###########################################
+# Fuel-price-scanner
+###########################################
+
+import numpy as np
 import requests
-from plotly import tools
-import plotly.plotly as py
-import plotly.graph_objs as go
-import plotly
 import time
 from time import strftime, localtime
+
 from bs4 import BeautifulSoup
+
 import configparser
+import pandas as pd
 
 #contains the name and address of a station and the pulled prices of that station
 class Station:
@@ -28,8 +26,8 @@ class Station:
         print(self.address)
         for price in self.prices:
             print(price)
-
-#read config.ini from the program directory
+            
+#read the config.ini
 config = configparser.ConfigParser()
 config.read('config.ini')
 
@@ -42,14 +40,14 @@ plz = config['USER']['PLZ']
 town = config['USER']['TOWN']
 radius = config['USER']['RADIUS']
 fuel_type = config['USER']['FUEL_TYPE']
+source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+fuel_type+'&ort='+plz+'+'+town+'&r='+radius+'&sort=km' 
 
-#stations contains all the station_objs for a defined search
-stations = []
-
-#us parameters to generate the web-adress
-source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+fuel_type+'&ort='+plz+'+'+town+'&r='+radius+'&sort=km'
-
-#loads the url into the parser
+#initialize stations and dates
+df = pd.DataFrame()
+stations= []
+prices=[]
+clock=[]
+#load the complete content of clever-tanken.de (with config)
 def load_page(url):
     page = requests.get(url)
     content = BeautifulSoup(page.text, 'html.parser')
@@ -59,9 +57,16 @@ def load_page(url):
 def get_stations(content):
     sta = content.find_all(class_='price-entry')
     return sta
-     
+
 #get address and creat station_obj for each station
-def get_address(raw):
+def get_data(raw, df):
+    #prices = []
+    #stations  = []
+    
+    x = 0
+    timestamp = strftime('%x - %H:%M', localtime())
+    clock.append(timestamp)
+    #get adresses
     for station in raw:
         #get address-info in html
         ad1 = station.find(class_='row fuel-station-location-name')
@@ -75,49 +80,41 @@ def get_address(raw):
         
         #combine into address-string and create Station
         address = ad1_str +'\n'+ ad2_str +'\n'+ ad3_str
-        stations.append(Station(address))
-    
-
-#extract prices from html and append do Station
-def extract_price(raw):
-    x = 0
-    for station in raw:
+        stations.append(address)
+        #print(stations)
+       
+       #get prices
         price_temp = station.find(class_="price")
         
         #check if the station offers a price for the selected fuel at the selected time
         if price_temp == None:
             price = None
+            prices.append(price)
+            #print(prices)
         else:
             price = float(price_temp.contents[0])
-       
-        stations[x].append(price)
-        x += 1
+            
+            prices.append(price)
+            #print(prices)
+            
+    dictionary = dict(zip(stations, prices))    
+    df = pd.DataFrame(dictionary, index=clock)    
         
-#plot the data and publish it as html
-def plotter(stations, times):
-    layout = dict(xaxis = dict(title = 'Zeitpunkt'),
-                  yaxis = dict(title = 'Preis'),
-                  )
-    data = []
-    for station in stations:
-        #print(station.address)
-        plot = go.Scatter(name = station.address, x = times, y = station.prices)
-        data.append(plot)
-    
-    fig = dict(data=data, layout=layout)
-    plotly.offline.plot(fig, filename=path+html_file, auto_open=False)
-    
-#run the mainloop
-counter = 0
-clock = [] #save the timestamp of each scan
+    return df
 
+def write_json (df):
+    df.to_json('test.json')
+    
+
+counter = 0
 while counter < (((3600*24)/int(period))*int(span)):
-    clock.append(strftime('%x - %H:%M', localtime()))
     website = load_page(source)
     fuelstations = get_stations(website)
-    get_address(fuelstations)
-    extract_price(fuelstations)
-    plotter(stations, clock)
+    data = get_data(fuelstations, df)
+    print(data)
+    write_json(data)
+    #plotter(stations, clock)
     counter +=1
     time.sleep(int(period))
-    
+
+
