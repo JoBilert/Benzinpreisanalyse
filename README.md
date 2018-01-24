@@ -26,6 +26,8 @@ Copy the `config.default` to `config.ini`. Edit the `config.ini` and set the Par
 
 Run the grabber on your server with `nohup python3 pricegrabber.py >grabber.log &`. Then run the dashboard on the using `nohup python3 dashboard.py >dashboard.log &`.
 
+You can also use the `start_grabbing.sh` to start both skripts.
+
 **Be advised: While the grabber stops after the amount of days you specified in SPAN in your `config.ini`, the dashboard will continue running until you terminate it manually.**
 
 Per default the dashboard can be reached under `http://<YOUR_SERVER_IP/URL>:8050`
