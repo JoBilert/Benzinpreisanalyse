@@ -133,7 +133,7 @@ def get_data(raw, db, type, timestamp):
 database = create_load_database()
 while True:
     dt = datetime.datetime.now()
-    if dt.minute == 00:
+    if dt.minute == 00 or dt.minute == 30:
         time = strftime('%x - %H:%M', localtime())
         for type in fuel_type:
             source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+str(type)+'&ort='+plz+ort+'&r='+radius+'&sort=km'

@@ -8,9 +8,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import plotly.graph_objs as go
 
-layout_a = go.Layout(xaxis={'title': 'Zeitpunkt'},
-                     yaxis={'title': 'Preis'}
-                     )
+
 #fueltype = "Super E10"
 app = dash.Dash()
 
@@ -18,26 +16,16 @@ app.layout = html.Div([
     html.H1(children = 'Benzinpreisbarometer'),
     html.Div([
         html.Div([
-            html.P('Suchradius:'),
+            html.P('Suchradius:', style ={'color':'black'}),
             dcc.Slider(id='distance',
                        min=5.0,
                        max=50.0,
                        step=5.0,
                        marks={i: '{}km'.format(i) for i in [5,10,15,20,25,30,35,40,45,50]},
-                       value=5.0)
-                 ], style={'margin-left': 50, 'margin-right':50, 'margin-bottom':20}),
+                       value=5.0),
+                 ], style={'margin-left': 50, 'margin-right':50, 'margin-bottom':30}),
         html.Div([
-            html.Div([
-                html.H4('Aktuelle Preiskurve'),
-                dcc.Graph(id='fuel'),
-                ], style = {'width' : '45%', 'display': 'inline-block'}),
-            html.Div([
-                html.H4('Durchschnittspreis für diese Kraftstoffart:'),
-                dcc.Graph(id='average'),
-                ], style = {'width' : '45%', 'margin-left': 10, 'display': 'inline-block'})
-            ]),
-        html.Div([
-            html.P('Kraftstoffart:'),
+            html.P('Kraftstoffart:', style ={'margin-top':'10','color':'black'}),
             dcc.Dropdown(id='fueltype_choice',
                          options=[
                              {'label': 'Autogas (LPG)', 'value': 'Autogas (LPG)'},
@@ -50,9 +38,23 @@ app.layout = html.Div([
                              {'label': 'Premium Diesel', 'value': 'Premium Diesel'}
                              ],
                          value='Super E10')
-            ], style={'margin-left': 50, 'margin-right': 50, 'margin-top': 10})
+            ], style={'margin-left': 50, 'margin-right':50, 'margin-bottom':20}),
+        html.Div([
+            html.Div([
+                html.H4('Aktuelle Preiskurve'),
+                dcc.Graph(id='fuel'),
+                
+                ], style = {'width' : '95%', 'margin':'auto'}),
+            html.Div([
+                html.H4('Durchschnittspreis für diese Kraftstoffart:'),
+                dcc.Graph(id='average')
+                ], style = {'width' : '95%', 'margin':'auto'})
+            ], style = {'margin':'auto', 'width': '95%'}),
+        #html.Div([
+            
+         #   ], style={'margin-left': 50, 'margin-right': 50, 'margin-top': 10})
         ])
-    ])
+    ], style={'background-color': '#A9E2F3'})
 
 def load_database():
     if Path('data.sqlite').is_file():
@@ -90,7 +92,9 @@ def prepare_plot(fueltype_choice, dist):
         
     return {
         'data': figures,
-        'layout': layout_a
+        'layout': go.Layout(xaxis={'title': 'Zeitpunkt'},
+                            yaxis={'title': 'Preis'},
+                            )
         }
 
 #average fuel-price
@@ -115,23 +119,23 @@ def plot_average(fueltype_choice):
         test = str(row['date'])
         #print (test in ref)
         if test in ref:
-            prices.append(float(row['price']))
-            print('Gleiche Zeit')
-            #print (prices)
-            avg = sum(prices) / len(prices)
-            #print(test)
+            print (row['price'])
+            if pd.isna(row['price']) == False:
+                prices.append(float(row['price']))
+                avg = sum(prices) / len(prices)
+            #print(avg)
             date = test
         else:
-            print('neue Zeit')
+            #print('neue Zeit')
             prices_avg.append(round(avg,2))
             dates.append(date)
             ref = str(row['date'])
             date = test
             #print(ref)
             prices = []
-            prices.append(float(row['price']))
+            if pd.isna(row['price']) == False:
+                prices.append(float(row['price']))
            
-    prices_avg.append(round(avg,2))
     dates.append(date)
     dat = go.Scatter(x = dates,
                      y = prices_avg,
@@ -140,7 +144,10 @@ def plot_average(fueltype_choice):
     print (dat)
     return {
         'data': [dat],
-        'layout': layout_a
+        'layout': go.Layout(xaxis={'title': 'Zeitpunkt'},
+                            yaxis={'title': 'Preis'},
+                            legend={'x': 1, 'y':-2}
+                            )
         }
     
 
