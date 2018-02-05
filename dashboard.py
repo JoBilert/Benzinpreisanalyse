@@ -133,7 +133,7 @@ def plot_average(fueltype_choice):
             date = test
             #print(ref)
             prices = []
-            if pd.isna(row['price']) == False:
+            if pd.isnull(row['price']) == False:
                 prices.append(float(row['price']))
            
     dates.append(date)
