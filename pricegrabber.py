@@ -14,7 +14,7 @@ from pathlib import Path
 
 if len(sys.argv) < 3:
     print ('''Bitte Postleitzahl und Ort angeben!\n\n
-python3 pricegrabber.py PLZ Ort\n\n''')
+#python3 pricegrabber.py PLZ Ort\n\n''')
     sys.exit()
 else:
     plz = str(sys.argv[1])
@@ -26,8 +26,9 @@ else:
     for t in town:
         ort += "+"+t
     print(''' Serverdienst läuft und sammelt stündlich alle Kraftstoffpreise \n
-im Umkreis von 50km um '''+plz +' ' +ort+'''.\n
+im Umkreis von 50km um '''+plz +' ' +ort[1:]+'''.\n
 Zum Beenden [Strg]+[C] drücken''')
+
 
 #read and parse config.ini
 #config = configparser.ConfigParser()
@@ -40,6 +41,7 @@ Zum Beenden [Strg]+[C] drücken''')
 #town = config['USER']['TOWN']
 radius = '50.0'
 fuel_type = [1, 3, 4, 5, 6, 7, 8, 12]
+
 
 #cheack if database exists or create one
 def create_load_database():
@@ -61,10 +63,20 @@ def create_load_database():
     return db
 
 #load the complete content of clever-tanken.de (with config)
-def load_page(url):
-    page = requests.get(url)
-    content = BeautifulSoup(page.text, 'html.parser')
-    return content
+def load_page():
+    data_coll = []
+    page = 1
+    while True:
+        url = "http://www.clever-tanken.de/tankstelle_liste?spritsorte=" + str(type) + "&ort=" + plz + ort + "&r=" + radius + "&sort=km&page=" + str(page)
+        print (url)
+        site = requests.get(str(url))
+        content = BeautifulSoup(site.text, 'html.parser')
+        data = get_stations(content)
+        if data == []:
+            break
+        data_coll.append(data)
+        page += 1
+    return data_coll
 
 #extract price-table from webpage
 def get_stations(content):
@@ -72,62 +84,63 @@ def get_stations(content):
     return sta
 
 #extract the data-pieces from html and write into database
-def get_data(raw, db, type, timestamp):
+def get_data(data_coll, db, type, timestamp):
     #get adresses
-    for station in raw:
-        #get address-info in html
-        ad1 = station.find(class_='row fuel-station-location-name')
-        ad2 = station.find(id = 'fuel-station-location-street')
-        ad3 = station.find(id = 'fuel-station-location-city')
+    for data in data_coll:
+        for station in data:
+            #get address-info in html
+            ad1 = station.find(class_='row fuel-station-location-name')
+            ad2 = station.find(id = 'fuel-station-location-street')
+            ad3 = station.find(id = 'fuel-station-location-city')
+            
+            #strip html-tags
+            ad1_str = ad1.contents[0]
+            ad2_str = ad2.contents[0]
+            ad3_str = ad3.contents[0]
+            
+            #combine into address-string and create Station
+            address = ad1_str +'\n'+ ad2_str +'\n'+ ad3_str
+            #print(stations)
+            
+            #get prices
+            price_temp = station.find(class_="price")
+            
+            #check if the station offers a price for the selected fuel at the selected time
+            if price_temp == None:
+                price = None
+                #print(prices)
+            else:
+                price = float(price_temp.contents[0])
+                
+            #get distance
+            distance_temp = station.find(class_='fuel-station-location-address-distance')
+            distance = float(str(distance_temp.contents[1])[5:9])
+                
+            #get fueltype
+            if type == 1:
+                f_type = 'Autogas (LPG)'
+            elif type == 3:
+                f_type = 'Diesel'
+            elif type == 4:
+                f_type = 'Bio-Ethanol'
+            elif type == 5:
+                f_type = 'Super E10'
+            elif type == 6:
+                f_type = 'Super Plus'
+            elif type == 7:
+                f_type = 'Super E5'
+            elif type == 8:
+                f_type = 'Erdgas (CNG)'
+            else:
+                f_type = 'Premium Diesel'
 
-        #strip html-tags
-        ad1_str = ad1.contents[0]
-        ad2_str = ad2.contents[0]
-        ad3_str = ad3.contents[0]
-
-        #combine into address-string and create Station
-        address = ad1_str +'\n'+ ad2_str +'\n'+ ad3_str
-        #print(stations)
-
-       #get prices
-        price_temp = station.find(class_="price")
-
-        #check if the station offers a price for the selected fuel at the selected time
-        if price_temp == None:
-            price = None
-            #print(prices)
-        else:
-            price = float(price_temp.contents[0])
-
-        #get distance
-        distance_temp = station.find(class_='fuel-station-location-address-distance')
-        distance = float(str(distance_temp.contents[1])[5:9])
-
-        #get fueltype
-        if type == 1:
-            f_type = 'Autogas (LPG)'
-        elif type == 3:
-            f_type = 'Diesel'
-        elif type == 4:
-            f_type = 'Bio-Ethanol'
-        elif type == 5:
-            f_type = 'Super E10'
-        elif type == 6:
-            f_type = 'Super Plus'
-        elif type == 7:
-            f_type = 'Super E5'
-        elif type == 8:
-            f_type = 'Erdgas (CNG)'
-        else:
-            f_type = 'Premium Diesel'
-
-        entry = (address, distance, timestamp, price, f_type)
-        print (entry)
-        # write the data into database
-        cursor = db.cursor()
-        cursor.execute("INSERT INTO FUELS VALUES (?,?,?,?,?)", entry)
-        db.commit()
-        cursor.close()
+            entry = (address, distance, timestamp, price, f_type)
+            print (entry)
+            # write the data into database
+            cursor = db.cursor()
+            cursor.execute("INSERT INTO FUELS VALUES (?,?,?,?,?)", entry)
+            db.commit()
+            cursor.close()
 
 
 database = create_load_database()
@@ -136,7 +149,7 @@ while True:
     if dt.minute == 00 or dt.minute == 30:
         time = strftime('%x - %H:%M', localtime())
         for type in fuel_type:
-            source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+str(type)+'&ort='+plz+ort+'&r='+radius+'&sort=km'
-            website = load_page(source)
-            fuelstations = get_stations(website)
-            get_data(fuelstations, database, type, time)
+            #source = 'http://www.clever-tanken.de/tankstelle_liste?spritsorte='+str(type)+'&ort='+plz+town+'&r='+radius+'&sort=km&page='+page
+            website = load_page()
+            get_data(website, database, type, time)
+            
