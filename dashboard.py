@@ -120,7 +120,7 @@ def plot_average(fueltype_choice):
         #print (test in ref)
         if test in ref:
             print (row['price'])
-            if pd.isna(row['price']) == False:
+            if pd.isnull(row['price']) == False:
                 prices.append(float(row['price']))
                 avg = sum(prices) / len(prices)
             #print(avg)
